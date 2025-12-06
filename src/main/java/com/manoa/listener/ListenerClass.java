@@ -21,7 +21,7 @@ import jakarta.servlet.annotation.WebListener;
 public class ListenerClass implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        System.out.println(">>>>>>> Application servlet demarree sous JFramework <<<<<");
+        System.out.println("####### Application servlet demaree #######");
 
         ServletContext servletContext = sce.getServletContext();
         String appPath = servletContext.getRealPath("/WEB-INF/classes");
@@ -40,7 +40,7 @@ public class ListenerClass implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println(">>>>> Application du JFramework arretee  <<<<<<");
+        System.out.println("####### Application arretee  #######");
     }
 
     private List<Class<?>> findClassesWithAnnotation(File folder, String packageName, Class<?> annotationClass)
@@ -60,7 +60,7 @@ public class ListenerClass implements ServletContextListener {
                     if (cls.isAnnotationPresent(annotationClass.asSubclass(java.lang.annotation.Annotation.class))) {
                         result.add(cls);
                     }
-                } catch (Throwable t) {
+                } catch (Throwable _) {
                 }
             }
         }

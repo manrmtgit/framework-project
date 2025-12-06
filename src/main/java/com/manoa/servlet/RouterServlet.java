@@ -30,19 +30,18 @@ public class RouterServlet extends HttpServlet {
 
     // public static Map<String, Rooter> rooters;
     @Override
-    public void init() throws ServletException {
+    public void init() {
         dispatcher = getServletContext().getNamedDispatcher("default");
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException {
         try {
 
             processRequest(request, response, "get");
         } catch (Exception e) {
             e.printStackTrace();
-            new ServletException(e.getMessage());
+            throw new ServletException(e.getMessage());
         }
     }
 
@@ -53,16 +52,15 @@ public class RouterServlet extends HttpServlet {
             processRequest(request, response, "post");
         } catch (Exception e) {
             e.printStackTrace();
-            new ServletException(e.getMessage());
+            throw new ServletException(e.getMessage());
         }
     }
 
     private void processRequest(HttpServletRequest request, HttpServletResponse response, String typeMethod)
             throws Exception {
         ServletContext context = request.getServletContext();
-        HttpServletRequest req = (HttpServletRequest) request;
-        String path = req.getRequestURI();
-        String relativePath = path.substring(req.getContextPath().length());
+        String path = ((HttpServletRequest) request).getRequestURI();
+        String relativePath = path.substring(((HttpServletRequest) request).getContextPath().length());
         if (fileExists(context, relativePath)) {
             dispatcher.forward(request, response);
         } else {
@@ -124,7 +122,6 @@ public class RouterServlet extends HttpServlet {
 
     private void execRoote(HttpServletRequest request, HttpServletResponse response, Rooter rooter, PrintWriter out, String pathClient, String pathController)
             throws Exception {
-        HttpServletRequest req = (HttpServletRequest) request;
         String className = rooter.classe;
         String methodName = rooter.method;
         // Charger la classe dynamiquement
@@ -133,14 +130,14 @@ public class RouterServlet extends HttpServlet {
         for (Method m : clazz.getDeclaredMethods()) {
             if (m.getName().equals(methodName)) {
 
-                // mi executer methode
+                // execute method
                 Object instance = clazz.getDeclaredConstructor().newInstance();
 
                 Parameter[] parameters = m.getParameters();
                 Object result;
 
                 if (parameters.length == 0) {
-                    // méthode sans paramètre
+                    // method without parameter
                     result = m.invoke(instance);
                 } else {
                     String[] keyParam = pathController.split("/");
@@ -193,9 +190,7 @@ public class RouterServlet extends HttpServlet {
                         }
 
                         // parameter type object
-
-
-                        if (rawValue == null || rawValue.isEmpty() || rawValue.trim().length() == 0) {
+                        if (rawValue == null || rawValue.isEmpty() || rawValue.trim().isEmpty()) {
                             if (type.isPrimitive()) {
                                 if (type == int.class) values[i] = 0;
                                 if (type == double.class) values[i] = 0.0;
@@ -209,7 +204,7 @@ public class RouterServlet extends HttpServlet {
                         if (values[i] == null) {
                             if (CasterClass.isComplexObject(parameters[i])) {
                                 values[i] = CasterClass.castObject(parameters[i], request);
-                                System.out.println("mety eto eeeh" + values[i].getClass().getName());
+                                System.out.println("It works" + values[i].getClass().getName());
                             }
                         }
                     }
@@ -219,7 +214,7 @@ public class RouterServlet extends HttpServlet {
                 }
                 if (result.getClass().getName().compareToIgnoreCase("java.lang.String") == 0) {
                     out.println(result);
-                } else if (result.getClass().getName().compareToIgnoreCase("jframework.qutils.ModelView") == 0) {
+                } else if (result.getClass().getName().compareToIgnoreCase("com.manoa.utils.ModelView") == 0) {
                     ModelView modelView = (ModelView) result;
 
                     for (Map.Entry<String, Object> data : modelView.getData().entrySet()) {
@@ -229,7 +224,7 @@ public class RouterServlet extends HttpServlet {
                     if (!pathDispatch.startsWith("/")) {
                         pathDispatch = "/" + pathDispatch;
                     }
-                    RequestDispatcher dispat = req.getRequestDispatcher(pathDispatch);
+                    RequestDispatcher dispat = ((HttpServletRequest) request).getRequestDispatcher(pathDispatch);
                     dispat.forward(request, response);
                 } else {
                     out.println("<h1> Erreur 500 </h1>");

@@ -38,7 +38,6 @@ public class CasterClass {
         if (type == java.sql.Date.class) return java.sql.Date.valueOf(value);
         if (type == java.util.Date.class) return java.sql.Date.valueOf(value);
 
-
         throw new Exception("Type non géré : " + type.getName());
     }
 
@@ -133,7 +132,7 @@ public class CasterClass {
                 }
             }
 
-            // tsotra
+            // simple
             if (field.get(instance) == null) {
                 String valueString = request.getParameter(nameParameter);
                 field.set(instance, cast(valueString, field.getType()));
