@@ -28,7 +28,6 @@ public class RouterServlet extends HttpServlet {
 
     private RequestDispatcher dispatcher;
 
-    // public static Map<String, Rooter> rooters;
     @Override
     public void init() {
         dispatcher = getServletContext().getNamedDispatcher("default");
@@ -66,7 +65,6 @@ public class RouterServlet extends HttpServlet {
         } else {
             response.setContentType("text/html;charset=UTF-8");
             try (PrintWriter out = response.getWriter()) {
-                // String url = request.getRequestURL().toString();
                 Map<String, Rooter> rooters = null;
                 if (typeMethod.compareToIgnoreCase("get") == 0) {
                     rooters = (Map<String, Rooter>) context.getAttribute("rootersGet");
@@ -74,7 +72,6 @@ public class RouterServlet extends HttpServlet {
                     rooters = (Map<String, Rooter>) context.getAttribute("rootersPost");
                 }
                 Rooter rooter = rooters.get(relativePath);
-
 
                 if (rooter == null) {
                     boolean isMatch = false;
@@ -159,7 +156,6 @@ public class RouterServlet extends HttpServlet {
                             Type valType = pt.getActualTypeArguments()[1];
 
                             if (keyType == String.class && valType == Object.class) {
-
                                 Map<String, Object> paramMap = new HashMap<>();
 
                                 request.getParameterMap().forEach((k, v) -> {
@@ -209,7 +205,6 @@ public class RouterServlet extends HttpServlet {
                         }
                     }
 
-
                     result = m.invoke(instance, values);
                 }
                 if (result.getClass().getName().compareToIgnoreCase("java.lang.String") == 0) {
@@ -227,7 +222,7 @@ public class RouterServlet extends HttpServlet {
                     RequestDispatcher dispat = ((HttpServletRequest) request).getRequestDispatcher(pathDispatch);
                     dispat.forward(request, response);
                 } else {
-                    out.println("<h1> Erreur 500 </h1>");
+                    out.println("<h1> Erro 500 </h1>");
                     out.println("<p> Type de retour de " + rooter.classe + " : " + rooter.method + " est invalide");
                 }
             }
