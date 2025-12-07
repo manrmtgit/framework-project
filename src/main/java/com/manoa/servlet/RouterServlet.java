@@ -85,14 +85,14 @@ public class RouterServlet extends HttpServlet {
                             isMatch = true;
                             String pathParameter = (String) root.getKey();
                             Rooter rooterParameter = (Rooter) rooters.get(pathParameter);
-                            execRoot(request, response, rooterParameter, out, relativePath, root.getKey());
+                            execRoote(request, response, rooterParameter, out, relativePath, root.getKey());
                         } else {
                             String[] urlInterogation = relativePath.split("\\?");
                             if (urlInterogation.length > 1) {
                                 if (urlInterogation[0].compareToIgnoreCase(root.getKey()) == 0) {
                                     rooter = rooters.get(urlInterogation[0]);
                                     if (rooter != null) {
-                                        execRoot(request, response, rooter, out, relativePath, root.getKey());
+                                        execRoote(request, response, rooter, out, relativePath, root.getKey());
                                     }
                                 }
                             }
@@ -101,7 +101,7 @@ public class RouterServlet extends HttpServlet {
                     if (isMatch) return;
                     if (!isMatch) out.println("<h1> 404 Not Found</h1>");
                 } else {
-                    execRoot(request, response, rooter, out, relativePath, relativePath);
+                    execRoote(request, response, rooter, out, relativePath, relativePath);
                 }
             }
         }
@@ -120,7 +120,7 @@ public class RouterServlet extends HttpServlet {
 
     }
 
-    private void execRoot(HttpServletRequest request, HttpServletResponse response, Rooter rooter, PrintWriter out, String pathClient, String pathController)
+    private void execRoote(HttpServletRequest request, HttpServletResponse response, Rooter rooter, PrintWriter out, String pathClient, String pathController)
             throws Exception {
         String className = rooter.classe;
         String methodName = rooter.method;
@@ -227,7 +227,7 @@ public class RouterServlet extends HttpServlet {
                     RequestDispatcher dispat = ((HttpServletRequest) request).getRequestDispatcher(pathDispatch);
                     dispat.forward(request, response);
                 } else {
-                    out.println("<h1> Error 500 </h1>");
+                    out.println("<h1> Erreur 500 </h1>");
                     out.println("<p> Type de retour de " + rooter.classe + " : " + rooter.method + " est invalide");
                 }
             }
