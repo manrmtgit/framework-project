@@ -21,11 +21,10 @@ import jakarta.servlet.annotation.WebListener;
 public class ListenerClass implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        System.out.println("####### Application servlet demaree #######");
+        System.out.println("####### Application Started #######");
 
         ServletContext servletContext = sce.getServletContext();
         String appPath = servletContext.getRealPath("/WEB-INF/classes");
-
 
         try {
             List<Class<?>> controllers = findClassesWithAnnotation(new File(appPath), "", Controller.class);
