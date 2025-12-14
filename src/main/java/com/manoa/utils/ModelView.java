@@ -3,6 +3,9 @@ package com.manoa.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * ModelView class
+ */
 public class ModelView {
     String view;
     HashMap<String, Object> data = new HashMap<>();
