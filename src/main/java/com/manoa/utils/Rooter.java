@@ -1,5 +1,8 @@
 package com.manoa.utils;
 
+/**
+ * Rooter class
+ */
 public class Rooter {
     public String classe;
     public String method;
