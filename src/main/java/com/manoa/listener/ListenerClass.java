@@ -23,13 +23,14 @@ import jakarta.servlet.annotation.WebListener;
 public class ListenerClass implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        System.out.println("####### Application Started #######");
+        System.out.println("####### APPLICATION STARTED #######");
 
         ServletContext servletContext = sce.getServletContext();
         String appPath = servletContext.getRealPath("/WEB-INF/classes");
 
         try {
-            List<Class<?>> controllers = findClassesWithAnnotation(new File(appPath), "", Controller.class);
+            List<Class<?>> controllers =
+                    findClassesWithAnnotation(new File(appPath), "", Controller.class);
             List<Map<String, Rooter>> rootersMap = getAllRootes(controllers);
             // RooterServlet.rooters = rootersMap;
             servletContext.setAttribute("rootersGet", rootersMap.get(0));
@@ -41,10 +42,11 @@ public class ListenerClass implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("####### Application arretee  #######");
+        System.out.println("####### APPLICATION STOPPED  #######");
     }
 
-    private List<Class<?>> findClassesWithAnnotation(File folder, String packageName, Class<?> annotationClass)
+    private List<Class<?>> findClassesWithAnnotation
+            (File folder, String packageName, Class<?> annotationClass)
             throws Exception {
         List<Class<?>> result = new ArrayList<>();
         File[] files = folder.listFiles();
@@ -65,6 +67,7 @@ public class ListenerClass implements ServletContextListener {
                 }
             }
         }
+
         return result;
     }
 
