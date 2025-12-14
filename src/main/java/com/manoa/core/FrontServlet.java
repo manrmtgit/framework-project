@@ -59,9 +59,9 @@ public class FrontServlet extends HttpServlet {
                 request.getRequestDispatcher(urlMappings.get(path)).forward(request, response);
             } else {
                 out.println("<div class='url-info'>");
-                out.println("<h2>URL non mappée: " + path + "</h2>");
+                out.println("<h2>URL not mapped: " + path + "</h2>");
                 out.println("<p><strong>Information:</strong> Cette URL n'est pas définie dans les mappings du FrontServlet</p>");
-                out.println("<p class='mapping'>✗ URL non mappée - Affichage de l'URL demandée</p>");
+                out.println("<p class='mapping'>✗ URL not mapped - Showing the requested URL</p>");
                 out.println("</div>");
             }
         }
