@@ -2,6 +2,7 @@ package com.manoa.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serial;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -22,8 +23,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-
+/**
+ * Router Servlet
+ */
 public class RouterServlet extends HttpServlet {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private RequestDispatcher dispatcher;
