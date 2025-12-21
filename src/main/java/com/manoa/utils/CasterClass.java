@@ -17,6 +17,9 @@ import java.util.Vector;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Caster Class
+ */
 public class CasterClass {
     public static Object cast(String value, Class<?> type) throws Exception {
         if (value == null) return null;
