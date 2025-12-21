@@ -1,14 +1,14 @@
 package com.manoa.servlet;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import com.manoa.annotations.Api;
@@ -21,6 +21,7 @@ import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 
 @MultipartConfig
 public class RouterServlet extends HttpServlet {
@@ -162,6 +163,7 @@ public class RouterServlet extends HttpServlet {
                     for (int i = 0; i < parameters.length; i++) {
                         Class<?> type = parameters[i].getType();
                         if (Map.class.isAssignableFrom(type)) {
+                            System.out.println("intyhy");
                             Type genericType = parameters[i].getParameterizedType();
                             ParameterizedType pt = (ParameterizedType) genericType;
                             Type keyType = pt.getActualTypeArguments()[0];
@@ -182,6 +184,154 @@ public class RouterServlet extends HttpServlet {
                                 });
 
                                 values[i] = paramMap;
+                                continue;
+                            } else if (keyType == String.class && valType.getTypeName().compareToIgnoreCase("java.util.List<byte[]>") == 0) {
+                                Map<String, List<byte[]>> fichiers = new HashMap<>();
+                                for (Part part : request.getParts()) {
+
+                                    String inputName = part.getName();
+                                    String fileName = part.getSubmittedFileName();
+
+                                    if (fileName == null || fileName.isEmpty()) {
+                                        continue;
+                                    }
+
+                                    byte[] data;
+                                    try (InputStream is = part.getInputStream()) {
+                                        data = is.readAllBytes();
+                                    }
+
+                                    fichiers
+                                            .computeIfAbsent(inputName, k -> new List<byte[]>() {
+                                                @Override
+                                                public int size() {
+                                                    return 0;
+                                                }
+
+                                                @Override
+                                                public boolean isEmpty() {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public boolean contains(Object o) {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public Iterator<byte[]> iterator() {
+                                                    return null;
+                                                }
+
+                                                @Override
+                                                public Object[] toArray() {
+                                                    return new Object[0];
+                                                }
+
+                                                @Override
+                                                public <T> T[] toArray(T[] a) {
+                                                    return null;
+                                                }
+
+                                                @Override
+                                                public boolean add(byte[] bytes) {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public boolean remove(Object o) {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public boolean containsAll(Collection<?> c) {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public boolean addAll(Collection<? extends byte[]> c) {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public boolean addAll(int index, Collection<? extends byte[]> c) {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public boolean removeAll(Collection<?> c) {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public boolean retainAll(Collection<?> c) {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public void clear() {
+
+                                                }
+
+                                                @Override
+                                                public boolean equals(Object o) {
+                                                    return false;
+                                                }
+
+                                                @Override
+                                                public int hashCode() {
+                                                    return 0;
+                                                }
+
+                                                @Override
+                                                public byte[] get(int index) {
+                                                    return new byte[0];
+                                                }
+
+                                                @Override
+                                                public byte[] set(int index, byte[] element) {
+                                                    return new byte[0];
+                                                }
+
+                                                @Override
+                                                public void add(int index, byte[] element) {
+
+                                                }
+
+                                                @Override
+                                                public byte[] remove(int index) {
+                                                    return new byte[0];
+                                                }
+
+                                                @Override
+                                                public int indexOf(Object o) {
+                                                    return 0;
+                                                }
+
+                                                @Override
+                                                public int lastIndexOf(Object o) {
+                                                    return 0;
+                                                }
+
+                                                @Override
+                                                public ListIterator<byte[]> listIterator() {
+                                                    return null;
+                                                }
+
+                                                @Override
+                                                public ListIterator<byte[]> listIterator(int index) {
+                                                    return null;
+                                                }
+
+                                                @Override
+                                                public List<byte[]> subList(int fromIndex, int toIndex) {
+                                                    return List.of();
+                                                }
+                                            })
+                                            .add(data);
+                                }
+
+                                values[i] = fichiers;
                                 continue;
                             }
 
