@@ -2,7 +2,6 @@ package com.manoa.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Serial;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -12,40 +11,38 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.manoa.annotations.Api;
 import com.manoa.annotations.RequestParameter;
-import com.manoa.utils.CasterClass;
-import com.manoa.utils.ModelView;
-import com.manoa.utils.Rooter;
+import com.manoa.utils.*;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Router Servlet
- */
+@MultipartConfig
 public class RouterServlet extends HttpServlet {
-    @Serial
     private static final long serialVersionUID = 1L;
 
     private RequestDispatcher dispatcher;
 
     // public static Map<String, Rooter> rooters;
     @Override
-    public void init() {
+    public void init() throws ServletException {
         dispatcher = getServletContext().getNamedDispatcher("default");
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         try {
 
             processRequest(request, response, "get");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ServletException(e.getMessage());
+            new ServletException(e.getMessage());
         }
     }
 
@@ -56,15 +53,16 @@ public class RouterServlet extends HttpServlet {
             processRequest(request, response, "post");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ServletException(e.getMessage());
+            new ServletException(e.getMessage());
         }
     }
 
     private void processRequest(HttpServletRequest request, HttpServletResponse response, String typeMethod)
             throws Exception {
         ServletContext context = request.getServletContext();
-        String path = ((HttpServletRequest) request).getRequestURI();
-        String relativePath = path.substring(((HttpServletRequest) request).getContextPath().length());
+        HttpServletRequest req = (HttpServletRequest) request;
+        String path = req.getRequestURI();
+        String relativePath = path.substring(req.getContextPath().length());
         if (fileExists(context, relativePath)) {
             dispatcher.forward(request, response);
         } else {
@@ -78,7 +76,6 @@ public class RouterServlet extends HttpServlet {
                     rooters = (Map<String, Rooter>) context.getAttribute("rootersPost");
                 }
                 Rooter rooter = rooters.get(relativePath);
-
 
                 if (rooter == null) {
                     boolean isMatch = false;
@@ -102,8 +99,10 @@ public class RouterServlet extends HttpServlet {
                             }
                         }
                     }
-                    if (isMatch) return;
-                    if (!isMatch) out.println("<h1> 404 Not Found</h1>");
+                    if (isMatch)
+                        return;
+                    if (!isMatch)
+                        out.println("<h1> 404 Not Found</h1>");
                 } else {
                     execRoote(request, response, rooter, out, relativePath, relativePath);
                 }
@@ -124,8 +123,10 @@ public class RouterServlet extends HttpServlet {
 
     }
 
-    private void execRoote(HttpServletRequest request, HttpServletResponse response, Rooter rooter, PrintWriter out, String pathClient, String pathController)
+    private void execRoote(HttpServletRequest request, HttpServletResponse response, Rooter rooter, PrintWriter out,
+                           String pathClient, String pathController)
             throws Exception {
+        HttpServletRequest req = (HttpServletRequest) request;
         String className = rooter.classe;
         String methodName = rooter.method;
         // Charger la classe dynamiquement
@@ -133,16 +134,20 @@ public class RouterServlet extends HttpServlet {
 
         for (Method m : clazz.getDeclaredMethods()) {
             if (m.getName().equals(methodName)) {
-
-                // execute method
+                // mi executer methode
                 Object instance = clazz.getDeclaredConstructor().newInstance();
 
                 Parameter[] parameters = m.getParameters();
-                Object result;
+                Object result = null;
+                Exception exceptionInvocation = null;
 
                 if (parameters.length == 0) {
-                    // method without parameter
-                    result = m.invoke(instance);
+                    // méthode sans paramètre
+                    try {
+                        result = m.invoke(instance);
+                    } catch (Exception e) {
+                        exceptionInvocation = e;
+                    }
                 } else {
                     String[] keyParam = pathController.split("/");
                     String[] valueParam = pathClient.split("/");
@@ -194,11 +199,15 @@ public class RouterServlet extends HttpServlet {
                         }
 
                         // parameter type object
-                        if (rawValue == null || rawValue.isEmpty() || rawValue.trim().isEmpty()) {
+
+                        if (rawValue == null || rawValue.isEmpty() || rawValue.trim().length() == 0) {
                             if (type.isPrimitive()) {
-                                if (type == int.class) values[i] = 0;
-                                if (type == double.class) values[i] = 0.0;
-                                if (type == boolean.class) values[i] = false;
+                                if (type == int.class)
+                                    values[i] = 0;
+                                if (type == double.class)
+                                    values[i] = 0.0;
+                                if (type == boolean.class)
+                                    values[i] = false;
                             } else {
                                 values[i] = null;
                             }
@@ -208,31 +217,49 @@ public class RouterServlet extends HttpServlet {
                         if (values[i] == null) {
                             if (CasterClass.isComplexObject(parameters[i])) {
                                 values[i] = CasterClass.castObject(parameters[i], request);
-                                System.out.println("It works" + values[i].getClass().getName());
                             }
                         }
                     }
 
-
-                    result = m.invoke(instance, values);
+                    try {
+                        result = m.invoke(instance, values);
+                    } catch (Exception e) {
+                        exceptionInvocation = e;
+                    }
                 }
-                if (result.getClass().getName().compareToIgnoreCase("java.lang.String") == 0) {
-                    out.println(result);
-                } else if (result.getClass().getName().compareToIgnoreCase("com.manoa.utils.ModelView") == 0) {
-                    ModelView modelView = (ModelView) result;
+                if (m.isAnnotationPresent(Api.class)) {
+                    response.setContentType("application/json; charset=UTF-8");
+                    Api typeAnnotationApi = m.getAnnotation(Api.class);
+                    String resultJson = "";
+                    if (typeAnnotationApi.format() == FormatApi.ROBUST) {
+                        resultJson = ReturnApi.getFormatRobuste(result, exceptionInvocation);
+                    } else if (typeAnnotationApi.format() == FormatApi.REST) {
+                        resultJson = ReturnApi.getFormatRest(result, exceptionInvocation);
+                        response.setStatus(ReturnApi.getHttpCodeFromException(exceptionInvocation));
+                    } else {
+                        resultJson = ReturnApi.getFormatSimple(result, exceptionInvocation);
+                    }
+                    response.getWriter().write(resultJson);
 
-                    for (Map.Entry<String, Object> data : modelView.getData().entrySet()) {
-                        request.setAttribute(data.getKey(), data.getValue());
-                    }
-                    String pathDispatch = modelView.getView();
-                    if (!pathDispatch.startsWith("/")) {
-                        pathDispatch = "/" + pathDispatch;
-                    }
-                    RequestDispatcher dispat = ((HttpServletRequest) request).getRequestDispatcher(pathDispatch);
-                    dispat.forward(request, response);
                 } else {
-                    out.println("<h1> Erreur 500 </h1>");
-                    out.println("<p> Type de retour de " + rooter.classe + " : " + rooter.method + " est invalide");
+                    if (result.getClass().getName().compareToIgnoreCase("java.lang.String") == 0) {
+                        out.println(result);
+                    } else if (result.getClass().getName().compareToIgnoreCase("com.manoa.utils.ModelView") == 0) {
+                        ModelView modelView = (ModelView) result;
+
+                        for (Map.Entry<String, Object> data : modelView.getData().entrySet()) {
+                            request.setAttribute(data.getKey(), data.getValue());
+                        }
+                        String pathDispatch = modelView.getView();
+                        if (!pathDispatch.startsWith("/")) {
+                            pathDispatch = "/" + pathDispatch;
+                        }
+                        RequestDispatcher dispat = req.getRequestDispatcher(pathDispatch);
+                        dispat.forward(request, response);
+                    } else {
+                        out.println("<h1> Erreur 500 </h1>");
+                        out.println("<p> Type de retour de " + rooter.classe + " : " + rooter.method + " est invalide");
+                    }
                 }
             }
         }
